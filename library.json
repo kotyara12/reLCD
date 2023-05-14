@@ -1,0 +1,17 @@
+{
+  "name": "reLCD",
+  "version": "1.0.0",
+  "description": "LCD1602 or LCD2004 display driver for ESP32 and ESP-IDF via I2C",
+  "keywords": "lcd1602, lcd2004",
+  "authors":
+  [
+    {
+      "name": "Alexander Razzhivin",
+      "email": "kotyara12@yandex.ru",
+      "url": "https://kotyara12.ru"
+    }
+  ],
+  "license": "MIT",
+  "frameworks": ["arduino", "espidf"],
+  "platforms": ["espressif32"]
+}
