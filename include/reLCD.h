@@ -76,11 +76,15 @@
 extern "C" {
 #endif
 
+#if LCD_RUS_USE_CUSTOM_CHARS
+
 #define MAX_CUSTOM_CHARS 8
 typedef struct {
   uint16_t unicode;
   uint32_t count;
 } custom_char_t;
+
+#endif // LCD_RUS_USE_CUSTOM_CHARS
 
 class reLCD {
   public:
@@ -109,11 +113,11 @@ class reLCD {
     void setAutoscroll(bool enabled); 
     // EN: Send text
     // RU: Печать текста
-    size_t write(uint8_t value);
-    size_t writewc(wchar_t chr);
-    size_t printstr(char* text);
-    size_t printpos(uint8_t col, uint8_t row, char* text);
-    size_t printf(const char* fmtstr, ...);
+    uint16_t write(uint8_t value);
+    uint16_t writewc(wchar_t chr);
+    uint16_t printstr(const char* text);
+    uint16_t printpos(uint8_t col, uint8_t row, const char* text);
+    uint16_t printf(const char* fmtstr, ...);
     // EN: Custom chars
     // RU: Пользовательские символы
     void createChar(uint8_t location, uint8_t charmap[]);
@@ -149,7 +153,7 @@ class reLCD {
       uint8_t  _col;
       uint8_t  _row;
       custom_char_t _buf_chars[MAX_CUSTOM_CHARS];
-      size_t writerc(uint16_t chr);
+      uint16_t writerc(uint16_t chr);
     #endif // LCD_RUS_USE_CUSTOM_CHARS
 };
 

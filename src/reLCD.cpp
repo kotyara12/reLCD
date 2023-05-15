@@ -288,7 +288,7 @@ inline void reLCD::command(uint8_t value)
 	send(value, 0);
 }
 
-inline size_t reLCD::write(uint8_t value) 
+uint16_t reLCD::write(uint8_t value) 
 {
 	send(value, Rs);
   #if LCD_RUS_USE_CUSTOM_CHARS
@@ -306,7 +306,7 @@ inline size_t reLCD::write(uint8_t value)
 
 #if LCD_RUS_USE_CUSTOM_CHARS
 
-inline size_t reLCD::writerc(uint16_t chr)
+uint16_t reLCD::writerc(uint16_t chr)
 {
   for (uint8_t i = 0; i < MAX_CUSTOM_CHARS; i++) {
     // Scan buffer
@@ -357,7 +357,7 @@ inline size_t reLCD::writerc(uint16_t chr)
   return write('?');
 }
 
-inline size_t reLCD::writewc(wchar_t chr)
+uint16_t reLCD::writewc(wchar_t chr)
 {
   // English alphabet without change
   if (chr < 128) {
@@ -393,7 +393,7 @@ inline size_t reLCD::writewc(wchar_t chr)
 
 #else
 
-inline size_t reLCD::writewc(wchar_t chr)
+uint16_t reLCD::writewc(wchar_t chr)
 {
   // todo: It may not work, but there is nothing to check on
   return write((uint8_t)chr);
@@ -401,11 +401,11 @@ inline size_t reLCD::writewc(wchar_t chr)
 
 #endif // LCD_RUS_USE_CUSTOM_CHARS
 
-inline size_t reLCD::printstr(char* text)
+uint16_t reLCD::printstr(const char* text)
 {
-  size_t len = strlen(text);
+  uint16_t len = strlen(text);
   if (len > 0) {
-    size_t pos = 0;
+    uint16_t pos = 0;
     wchar_t buf;
     while (pos < len) {
       pos += mbtowc(&buf, (char*)text + pos, 2);
@@ -415,24 +415,24 @@ inline size_t reLCD::printstr(char* text)
   return len;
 }
 
-inline size_t reLCD::printpos(uint8_t col, uint8_t row, char* text)
+uint16_t reLCD::printpos(uint8_t col, uint8_t row, const char* text)
 {
   setCursor(col, row);
   return printstr(text);
 }
 
-inline size_t reLCD::printf(const char* fmtstr, ...)
+uint16_t reLCD::printf(const char* fmtstr, ...)
 {
   va_list args;
   va_start(args, fmtstr);
-  size_t len = vsnprintf(nullptr, 0, fmtstr, args);
+  uint16_t len = vsnprintf(nullptr, 0, fmtstr, args);
   char* text = (char*)esp_calloc(1, len+1);
   if (text) {
     vsnprintf(text, len+1, fmtstr, args);
   };
   va_end(args);
   if (text) {
-    len = printstr(text);
+    len = printstr((const char*)text);
     free(text);
     return len;
   };
@@ -468,7 +468,7 @@ void reLCD::pulseEnable(uint8_t data)
 	ets_delay_us(1);		       // enable pulse must be >450ns
 	
 	expanderWrite(data & ~En); // En low
-	ets_delay_us(50);		       // commands need > 37us to settle
+	ets_delay_us(40);		       // commands need > 37us to settle
 }
 
 // Create custom characters for horizontal graphs
