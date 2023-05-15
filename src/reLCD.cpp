@@ -1,7 +1,12 @@
 #include "reLCD.h"
 #include "reI2C.h"
+#include "reEsp32.h"
 #include <rom/ets_sys.h>
-#include "math.h"
+#include <stdio.h>
+#include <stdarg.h>
+#include <stdlib.h>
+#include <string.h>
+
 
 // Commands
 #define LCD_CLEARDISPLAY        0x01
@@ -144,7 +149,7 @@ void reLCD::setDisplay(bool enabled)
 }
 
 // Turns the underline cursor on/off
-void reLCD::setCursor(bool enabled) 
+void reLCD::setCursorVisible(bool enabled) 
 {
   enabled ? _displaycontrol |= LCD_CURSORON : _displaycontrol &= ~LCD_CURSORON;
 	command(LCD_DISPLAYCONTROL | _displaycontrol);
@@ -200,13 +205,50 @@ void reLCD::createChar(uint8_t location, uint8_t charmap[])
 
 /*********** mid level commands, for sending data/cmds ***********/
 
-inline void reLCD::command(uint8_t value) {
+inline void reLCD::command(uint8_t value) 
+{
 	send(value, 0);
 }
 
-inline size_t reLCD::write(uint8_t value) {
+inline size_t reLCD::write(uint8_t value) 
+{
 	send(value, Rs);
 	return 1; // Number of processed bytes
+}
+
+inline size_t reLCD::printstr(char* text)
+{
+  size_t len = strlen(text);
+  if (len > 0) {
+    for (size_t i = 0; i < len; i++) {
+      write(text[i]);
+    };
+  };
+  return len;
+}
+
+inline size_t reLCD::printpos(uint8_t col, uint8_t row, char* text)
+{
+  setCursor(col, row);
+  return printstr(text);
+}
+
+inline size_t reLCD::printf(const char* fmtstr, ...)
+{
+  va_list args;
+  va_start(args, fmtstr);
+  size_t len = vsnprintf(nullptr, 0, fmtstr, args);
+  char* text = (char*)esp_calloc(1, len+1);
+  if (text) {
+    vsnprintf(text, len+1, fmtstr, args);
+  };
+  va_end(args);
+  if (text) {
+    len = printstr(text);
+    free(text);
+    return len;
+  };
+  return 0;
 }
 
 /*********** low level data pushing commands ***********/

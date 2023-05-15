@@ -75,18 +75,20 @@ class reLCD {
     // Options
     void setDisplay(bool enabled);
     void setBlink(bool enabled);
-    void setCursor(bool enabled);
+    void setCursorVisible(bool enabled);
     void setRightToLeft(bool enabled);
     void setBacklight(bool enabled);
     void setAutoscroll(bool enabled); 
     // Scroll text
     void scrollDisplayLeft();
     void scrollDisplayRight();
+    // Send text
+    size_t write(uint8_t value);
+    size_t printstr(char* text);
+    size_t printpos(uint8_t col, uint8_t row, char* text);
+    size_t printf(const char* fmtstr, ...);
     // Custom chars
     void createChar(uint8_t location, uint8_t charmap[]);
-    // Send commands
-    size_t write(uint8_t value);
-    void command(uint8_t value);
     // Bar graphs
     uint8_t init_bargraph(uint8_t graphtype);
     void draw_horizontal_graph(uint8_t row, uint8_t column, uint8_t len, uint8_t pixel_col_end);
@@ -109,6 +111,7 @@ class reLCD {
     uint8_t _graphstate[20];
 
     void send(uint8_t value, uint8_t mode);
+    void command(uint8_t value);
     void write4bits(uint8_t data);
     void expanderWrite(uint8_t data);
     void pulseEnable(uint8_t data);
