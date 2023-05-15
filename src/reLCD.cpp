@@ -6,7 +6,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include "project_config.h"
 
 // Commands
 #define LCD_CLEARDISPLAY        0x01
@@ -29,6 +29,67 @@
 #define constrainb(amt,low,high) ((amt)<(low)?(low):((amt)>(high)?(high):(amt)))
 #define constrainh(amt,high) ((amt)>(high)?(high):(amt))
 
+#if LCD_RUS_USE_CUSTOM_CHARS
+
+typedef struct {
+  uint8_t  rastr[8]; // Symbol bitmap
+  uint16_t unicode;  // Character code in unicode
+} image_char_t;
+
+// Russian symbols
+const image_char_t symbol_images[] = {
+  {{0b11111, 0b10000, 0b10000, 0b11110, 0b10001, 0b10001, 0b11110, 0b00000}, 1041}, // Б
+  {{0b11111, 0b10000, 0b10000, 0b10000, 0b10000, 0b10000, 0b10000, 0b00000}, 1043}, // Г
+  {{0b00110, 0b01010, 0b01010, 0b01010, 0b01010, 0b01010, 0b11111, 0b10001}, 1044}, // Д
+  {{0b10101, 0b10101, 0b10101, 0b01110, 0b10101, 0b10101, 0b10101, 0b00000}, 1046}, // Ж
+  {{0b01110, 0b10001, 0b00001, 0b00110, 0b00001, 0b10001, 0b01110, 0b00000}, 1047}, // З
+  {{0b10001, 0b10001, 0b10001, 0b10011, 0b10101, 0b11001, 0b10001, 0b00000}, 1048}, // И
+  {{0b10101, 0b10001, 0b10001, 0b10011, 0b10101, 0b11001, 0b10001, 0b00000}, 1049}, // Й 
+  {{0b00111, 0b01001, 0b01001, 0b01001, 0b01001, 0b01001, 0b10001, 0b00000}, 1051}, // Л
+  {{0b11111, 0b10001, 0b10001, 0b10001, 0b10001, 0b10001, 0b10001, 0b00000}, 1055}, // П
+  {{0b10001, 0b10001, 0b10001, 0b01111, 0b00001, 0b10001, 0b01110, 0b00000}, 1059}, // У
+  {{0b00100, 0b01110, 0b10101, 0b10101, 0b10101, 0b01110, 0b00100, 0b00000}, 1060}, // Ф
+  {{0b10010, 0b10010, 0b10010, 0b10010, 0b10010, 0b10010, 0b11111, 0b00001}, 1062}, // Ц
+  {{0b10001, 0b10001, 0b10001, 0b01111, 0b00001, 0b00001, 0b00001, 0b00000}, 1063}, // Ч
+  {{0b10001, 0b10001, 0b10001, 0b10101, 0b10101, 0b10101, 0b11111, 0b00000}, 1064}, // Ш
+  {{0b10001, 0b10001, 0b10001, 0b10101, 0b10101, 0b10101, 0b11111, 0b00001}, 1065}, // Щ
+  {{0b11000, 0b01000, 0b01000, 0b01110, 0b01001, 0b01001, 0b01110, 0b00000}, 1066}, // Ъ
+  {{0b10001, 0b10001, 0b10001, 0b11101, 0b10011, 0b10011, 0b11101, 0b00000}, 1067}, // Ы 
+  {{0b10000, 0b10000, 0b10000, 0b11110, 0b10001, 0b10001, 0b11110, 0b00000}, 1068}, // Ь
+  {{0b01110, 0b10001, 0b00001, 0b00111, 0b00001, 0b10001, 0b01110, 0b00000}, 1069}, // Э
+  {{0b10010, 0b10101, 0b10101, 0b11101, 0b10101, 0b10101, 0b10010, 0b00000}, 1070}, // Ю 
+  {{0b01111, 0b10001, 0b10001, 0b01111, 0b00101, 0b01001, 0b10001, 0b00000}, 1071}, // Я
+  {{0b00011, 0b01100, 0b10000, 0b11110, 0b10001, 0b10001, 0b01110, 0b00000}, 1073}, // б
+  {{0b00000, 0b00000, 0b11110, 0b10001, 0b11110, 0b10001, 0b11110, 0b00000}, 1074}, // в
+  {{0b00000, 0b00000, 0b11110, 0b10000, 0b10000, 0b10000, 0b10000, 0b00000}, 1075}, // г
+  {{0b00000, 0b00000, 0b00110, 0b01010, 0b01010, 0b01010, 0b11111, 0b10001}, 1076}, // д
+  {{0b01010, 0b00000, 0b01110, 0b10001, 0b11111, 0b10000, 0b01111, 0b00000}, 1105}, // ё
+  {{0b00000, 0b00000, 0b10101, 0b10101, 0b01110, 0b10101, 0b10101, 0b00000}, 1078}, // ж
+  {{0b00000, 0b00000, 0b01110, 0b10001, 0b00110, 0b10001, 0b01110, 0b00000}, 1079}, // з
+  {{0b00000, 0b00000, 0b10001, 0b10011, 0b10101, 0b11001, 0b10001, 0b00000}, 1080}, // и
+  {{0b01010, 0b00100, 0b10001, 0b10011, 0b10101, 0b11001, 0b10001, 0b00000}, 1081}, // й
+  {{0b00000, 0b00000, 0b10010, 0b10100, 0b11000, 0b10100, 0b10010, 0b00000}, 1082}, // к
+  {{0b00000, 0b00000, 0b00111, 0b01001, 0b01001, 0b01001, 0b10001, 0b00000}, 1083}, // л
+  {{0b00000, 0b00000, 0b10001, 0b11011, 0b10101, 0b10001, 0b10001, 0b00000}, 1084}, // м
+  {{0b00000, 0b00000, 0b10001, 0b10001, 0b11111, 0b10001, 0b10001, 0b00000}, 1085}, // н 
+  {{0b00000, 0b00000, 0b11111, 0b10001, 0b10001, 0b10001, 0b10001, 0b00000}, 1087}, // п
+  {{0b00000, 0b00000, 0b11111, 0b00100, 0b00100, 0b00100, 0b00100, 0b00000}, 1090}, // т
+  {{0b00000, 0b00000, 0b00100, 0b01110, 0b10101, 0b01110, 0b00100, 0b00000}, 1092}, // ф
+  {{0b00000, 0b00000, 0b10010, 0b10010, 0b10010, 0b10010, 0b11111, 0b00001}, 1094}, // ц
+  {{0b00000, 0b00000, 0b10001, 0b10001, 0b01111, 0b00001, 0b00001, 0b00000}, 1095}, // ч
+  {{0b00000, 0b00000, 0b10101, 0b10101, 0b10101, 0b10101, 0b11111, 0b00000}, 1096}, // ш
+  {{0b00000, 0b00000, 0b10101, 0b10101, 0b10101, 0b10101, 0b11111, 0b00001}, 1097}, // щ
+  {{0b00000, 0b00000, 0b11000, 0b01000, 0b01110, 0b01001, 0b01110, 0b00000}, 1098}, // ъ
+  {{0b00000, 0b00000, 0b10001, 0b10001, 0b11101, 0b10011, 0b11101, 0b00000}, 1099}, // ы
+  {{0b00000, 0b00000, 0b10000, 0b10000, 0b11110, 0b10001, 0b11110, 0b00000}, 1100}, // ь
+  {{0b00000, 0b00000, 0b01110, 0b10001, 0b00111, 0b10001, 0b01110, 0b00000}, 1101}, // э
+  {{0b00000, 0b00000, 0b10010, 0b10101, 0b11101, 0b10101, 0b10010, 0b00000}, 1102}, // ю
+  {{0b00000, 0b00000, 0b01111, 0b10001, 0b01111, 0b00101, 0b01001, 0b00000}, 1103}  // я
+};
+const uint8_t count_images = sizeof(symbol_images) / sizeof(image_char_t);
+
+#endif // LCD_RUS_USE_CUSTOM_CHARS
+
 reLCD::reLCD(uint8_t i2c_bus, uint8_t i2c_addr, uint8_t cols, uint8_t rows)
 {
   _I2C_num = i2c_bus;
@@ -36,6 +97,12 @@ reLCD::reLCD(uint8_t i2c_bus, uint8_t i2c_addr, uint8_t cols, uint8_t rows)
   _cols = cols;
   _rows = rows;
   _backlightval = LCD_NOBACKLIGHT;
+  #if LCD_RUS_USE_CUSTOM_CHARS
+    for (uint8_t i = 0; i < MAX_CUSTOM_CHARS; i++) {
+      _buf_chars[i].unicode = 0;
+      _buf_chars[i].count = 0;
+    };
+  #endif // LCD_RUS_USE_CUSTOM_CHARS
 }
 
 void reLCD::init()
@@ -108,6 +175,10 @@ void reLCD::clear()
 	command(LCD_CLEARDISPLAY);  
   // this command takes a long time!
 	ets_delay_us(2000);
+  // reset cursor position
+  #if LCD_RUS_USE_CUSTOM_CHARS
+    _col = 0; _row = 0;
+  #endif // LCD_RUS_USE_CUSTOM_CHARS
 }
 
 // Clear particular segment of a row
@@ -130,6 +201,10 @@ void reLCD::home()
 	command(LCD_RETURNHOME);  
   // this command takes a long time!
 	ets_delay_us(2000);
+  // reset cursor position
+  #if LCD_RUS_USE_CUSTOM_CHARS
+    _col = 0; _row = 0;
+  #endif // LCD_RUS_USE_CUSTOM_CHARS
 }
 
 void reLCD::setCursor(uint8_t col, uint8_t row)
@@ -138,6 +213,9 @@ void reLCD::setCursor(uint8_t col, uint8_t row)
 	if ( row > _numlines ) {
 		row = _numlines-1;    // we count rows starting w/0
 	}
+  #if LCD_RUS_USE_CUSTOM_CHARS
+  _col = col; _row = row;
+  #endif // LCD_RUS_USE_CUSTOM_CHARS
 	command(LCD_SETDDRAMADDR | (col + row_offsets[row]));
 }
 
@@ -213,15 +291,125 @@ inline void reLCD::command(uint8_t value)
 inline size_t reLCD::write(uint8_t value) 
 {
 	send(value, Rs);
-	return 1; // Number of processed bytes
+  #if LCD_RUS_USE_CUSTOM_CHARS
+    _col++;
+    if (_col >= _cols) {
+      _col =0;
+      _row++;
+      if (_row >= _rows) {
+        _row = 0;
+      };
+    };
+  #endif // LCD_RUS_USE_CUSTOM_CHARS
+	return 1;
 }
+
+#if LCD_RUS_USE_CUSTOM_CHARS
+
+inline size_t reLCD::writerc(uint16_t chr)
+{
+  for (uint8_t i = 0; i < MAX_CUSTOM_CHARS; i++) {
+    // Scan buffer
+    if (_buf_chars[i].unicode == chr) {
+      _buf_chars[i].count++;
+      return write(i);
+    };
+    // Copy symbol in buffer
+    for (uint8_t j = 0; j < count_images; j++) {
+      if (symbol_images[j].unicode == chr) {
+        // Searching for a blank character
+        uint8_t index = 255;
+        for (uint8_t i = 0; i < MAX_CUSTOM_CHARS; i++) {
+          if (_buf_chars[i].unicode == 0) {
+            index = i;
+            break;
+          };
+        };
+        // All cells are busy
+        if (index == 255) {
+          index = 0;
+          uint32_t min_count = _buf_chars[0].count;
+          for (uint8_t i = 1; i < MAX_CUSTOM_CHARS; i++) {
+            if (_buf_chars[i].count < min_count) {
+              index = i;
+              min_count = _buf_chars[i].count;
+            };
+          };
+        };
+        // Find symbol in images
+        for (uint8_t i = 0; i < count_images; i++) {
+          if (symbol_images[i].unicode == chr) {
+            uint8_t col = _col;
+            uint8_t row = _row;
+            // Put custom char
+            createChar(index, (uint8_t*)(symbol_images[i].rastr));
+            _buf_chars[index].unicode = chr;
+            _buf_chars[index].count = 1;
+            // Print custom char
+            setCursor(col, row);
+            return write(index);
+          };
+        };
+      };
+    };
+  };
+  // Unknown char
+  return write('?');
+}
+
+inline size_t reLCD::writewc(wchar_t chr)
+{
+  // English alphabet without change
+  if (chr < 128) {
+    return write((uint8_t)chr);
+  } else {
+    // Russian alphabet using the same characters as the English alphabet
+    switch (chr) {
+      case 1040:    return write('A');
+      case 1042:    return write('B');
+      case 1045:    return write('E');
+      case 1025:    return write('E');
+      case 1050:    return write('K');
+      case 1052:    return write('M');
+      case 1053:    return write('H');
+      case 1054:    return write('O');
+      case 1056:    return write('P');
+      case 1057:    return write('C');
+      case 1058:    return write('T');
+      case 1061:    return write('X');
+      case 1072:    return write('a');
+      case 1077:    return write('e');
+      case 1086:    return write('o');
+      case 1088:    return write('p');
+      case 1089:    return write('c');
+      case 1091:    return write('y');
+      case 1093:    return write('x');
+      case 0x00B0:  return write(223);
+      default:      return writerc((uint16_t)chr);
+    };
+  };
+  return 0;
+}
+
+#else
+
+inline size_t reLCD::writewc(wchar_t chr)
+{
+  // todo: It may not work, but there is nothing to check on
+  return write((uint8_t)chr);
+}
+
+#endif // LCD_RUS_USE_CUSTOM_CHARS
 
 inline size_t reLCD::printstr(char* text)
 {
   size_t len = strlen(text);
   if (len > 0) {
-    for (size_t i = 0; i < len; i++) {
-      write(text[i]);
+    size_t pos = 0;
+    wchar_t buf;
+    while (pos < len) {
+      pos += mbtowc(&buf, (char*)text + pos, 2);
+      writewc(buf);
     };
   };
   return len;
