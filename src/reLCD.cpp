@@ -99,8 +99,7 @@ reLCD::reLCD(uint8_t i2c_bus, uint8_t i2c_addr, uint8_t cols, uint8_t rows)
   _backlightval = LCD_NOBACKLIGHT;
   #if LCD_RUS_USE_CUSTOM_CHARS
     for (uint8_t i = 0; i < MAX_CUSTOM_CHARS; i++) {
-      _buf_chars[i].charcode = 0;
-      _buf_chars[i].count = 0;
+      _buf_chars[i] = 0;
     };
   #endif // LCD_RUS_USE_CUSTOM_CHARS
 }
@@ -310,8 +309,7 @@ uint16_t reLCD::writeRus(uint8_t chr)
 {
   for (uint8_t i = 0; i < MAX_CUSTOM_CHARS; i++) {
     // Scan in buffer
-    if (_buf_chars[i].charcode == chr) {
-      _buf_chars[i].count++;
+    if (_buf_chars[i] == chr) {
       return writeChar(i);
     };
 
@@ -323,25 +321,20 @@ uint16_t reLCD::writeRus(uint8_t chr)
         // Searching for a blank character
         uint8_t index = 255;
         for (uint8_t j = 0; j < MAX_CUSTOM_CHARS; j++) {
-          if (_buf_chars[j].charcode == 0) {
+          if (_buf_chars[j] == 0) {
             index = j;
             break;
           };
         };
-        // All cells are busy - looking for the least used
+        // All buffers are busy - reset all
         if (index == 255) {
           index = 0;
-          uint32_t min_count = _buf_chars[0].count;
-          for (uint8_t j = 1; j < MAX_CUSTOM_CHARS; j++) {
-            if (_buf_chars[j].count < min_count) {
-              index = j;
-              min_count = _buf_chars[j].count;
-            };
+          for (uint8_t j = 0; j < MAX_CUSTOM_CHARS; j++) {
+            _buf_chars[j] = 0;
           };
         };
-        // Create custom char
-        _buf_chars[index].charcode = chr;
-        _buf_chars[index].count = 1;
+        // Create new custom char
+        _buf_chars[index] = chr;
         createChar(index, (uint8_t*)(rus_chars[i].rastr));
         // Print custom char
         setCursor(col, row);
@@ -402,28 +395,26 @@ uint16_t reLCD::printstr(const char* text)
   uint16_t len = strlen(text);
   if (len > 0) {
     uint16_t pos = 0;
-    wchar_t wchar;
     while (pos < len) {
-      pos += mbtowc(&wchar, (char*)text + pos, 2);
-      // ascii :: А..Я а..я
-      if (wchar < 0xFF) {
-        write((uint8_t)wchar);
-      } // unicode :: А..Я а..я
-      else if ((wchar >= 0x0410) && (wchar <= 0x044F)) {
-        write((uint8_t)(wchar - 0x0350));
-      } // utf-8 D0 :: А..Я а..п
-      else if ((wchar >= 0xD090) && (wchar <= 0xD0BF)) {
-        write((uint8_t)(wchar - 0xCFD0));
-      } // utf-8 D1 :: р..я
-      else if ((wchar >= 0xD180) && (wchar <= 0xD18F)) {
-        write((uint8_t)(wchar - 0xD090));
-      } // Ё
-      else if ((wchar == 0x0401) || (wchar == 0xD081)) {
-        write(168);
-      }  // ё
-      else if ((wchar == 0x0451) || (wchar == 0xD191)) {
-        write(184);
-      }
+      // utf-8 D0 :: А..Я а..п
+      if ((pos+1 < len) && (text[pos] == 0xD0) && (text[pos+1] >= 0x90) && (text[pos+1] <= 0xBF)) {
+        write(text[pos+1]+0x30);
+        pos += 2;
+      } 
+      // utf-8 D1 :: р..я
+      else if ((pos+1 < len) && (text[pos] == 0xD1) && (text[pos+1] >= 0x80) && (text[pos+1] <= 0x8F)) {
+        write(text[pos+1]+0x70);
+        pos += 2;
+      } 
+      // utf-8 C2 :: °
+      else if ((pos+1 < len) && (text[pos] == 0xC2) && (text[pos+1] == 0xB0)) {
+        write(0xDF);
+        pos += 2;
+      } 
+      else {
+        write(text[pos]);
+        pos++;
+      };
     };
   };
   return len;

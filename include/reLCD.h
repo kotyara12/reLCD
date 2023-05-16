@@ -76,15 +76,7 @@
 extern "C" {
 #endif
 
-#if LCD_RUS_USE_CUSTOM_CHARS
-
 #define MAX_CUSTOM_CHARS 8
-typedef struct {
-  uint16_t charcode;
-  uint32_t count;
-} custom_char_t;
-
-#endif // LCD_RUS_USE_CUSTOM_CHARS
 
 class reLCD {
   public:
@@ -152,7 +144,7 @@ class reLCD {
     #if LCD_RUS_USE_CUSTOM_CHARS
       uint8_t  _col;
       uint8_t  _row;
-      custom_char_t _buf_chars[MAX_CUSTOM_CHARS];
+      uint8_t _buf_chars[MAX_CUSTOM_CHARS];
       uint16_t writeRus(uint8_t chr);
     #endif // LCD_RUS_USE_CUSTOM_CHARS
 };
