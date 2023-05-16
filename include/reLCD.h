@@ -80,7 +80,7 @@ extern "C" {
 
 #define MAX_CUSTOM_CHARS 8
 typedef struct {
-  uint16_t unicode;
+  uint16_t charcode;
   uint32_t count;
 } custom_char_t;
 
@@ -113,8 +113,7 @@ class reLCD {
     void setAutoscroll(bool enabled); 
     // EN: Send text
     // RU: Печать текста
-    uint16_t write(uint8_t value);
-    uint16_t writewc(wchar_t chr);
+    uint16_t write(uint8_t chr);
     uint16_t printstr(const char* text);
     uint16_t printpos(uint8_t col, uint8_t row, const char* text);
     uint16_t printf(const char* fmtstr, ...);
@@ -144,8 +143,9 @@ class reLCD {
     uint8_t  _graphstate[20];
     void send(uint8_t value, uint8_t mode);
     void command(uint8_t value);
-    void write4bits(uint8_t data);
     void expanderWrite(uint8_t data);
+    void write4bits(uint8_t data);
+    uint16_t writeChar(uint8_t value);
     void pulseEnable(uint8_t data);
     uint8_t graphHorizontalChars(uint8_t rowPattern);
     uint8_t graphVerticalChars(uint8_t rowPattern);
@@ -153,7 +153,7 @@ class reLCD {
       uint8_t  _col;
       uint8_t  _row;
       custom_char_t _buf_chars[MAX_CUSTOM_CHARS];
-      uint16_t writerc(uint16_t chr);
+      uint16_t writeRus(uint8_t chr);
     #endif // LCD_RUS_USE_CUSTOM_CHARS
 };
 
