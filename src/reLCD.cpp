@@ -98,9 +98,7 @@ reLCD::reLCD(uint8_t i2c_bus, uint8_t i2c_addr, uint8_t cols, uint8_t rows)
   _rows = rows;
   _backlightval = LCD_NOBACKLIGHT;
   #if LCD_RUS_USE_CUSTOM_CHARS
-    for (uint8_t i = 0; i < MAX_CUSTOM_CHARS; i++) {
-      _buf_chars[i] = 0;
-    };
+    resetRusCustomChars();
   #endif // LCD_RUS_USE_CUSTOM_CHARS
 }
 
@@ -177,6 +175,7 @@ void reLCD::clear()
   // reset cursor position
   #if LCD_RUS_USE_CUSTOM_CHARS
     _col = 0; _row = 0;
+    resetRusCustomChars();
   #endif // LCD_RUS_USE_CUSTOM_CHARS
 }
 
@@ -305,7 +304,14 @@ uint16_t reLCD::writeChar(uint8_t value)
 
 #if LCD_RUS_USE_CUSTOM_CHARS
 
-uint16_t reLCD::writeRus(uint8_t chr)
+void reLCD::resetRusCustomChars()
+{
+  for (uint8_t j = 0; j < MAX_CUSTOM_CHARS; j++) {
+    _buf_chars[j] = 0;
+  };
+}
+
+uint8_t reLCD::writeRus(uint8_t chr)
 {
   for (uint8_t i = 0; i < MAX_CUSTOM_CHARS; i++) {
     // Scan in buffer
@@ -329,9 +335,7 @@ uint16_t reLCD::writeRus(uint8_t chr)
         // All buffers are busy - reset all
         if (index == 255) {
           index = 0;
-          for (uint8_t j = 0; j < MAX_CUSTOM_CHARS; j++) {
-            _buf_chars[j] = 0;
-          };
+          resetRusCustomChars();
         };
         // Create new custom char
         _buf_chars[index] = chr;
@@ -346,7 +350,7 @@ uint16_t reLCD::writeRus(uint8_t chr)
   return writeChar('?');
 }
 
-uint16_t reLCD::write(uint8_t chr)
+uint8_t reLCD::write(uint8_t chr)
 {
   // English alphabet without change
   if (chr < 128) {
@@ -390,11 +394,11 @@ uint16_t reLCD::write(uint8_t chr)
 
 #endif // LCD_RUS_USE_CUSTOM_CHARS
 
-uint16_t reLCD::printstr(const char* text)
+uint8_t reLCD::printstr(const char* text)
 {
-  uint16_t len = strlen(text);
+  uint8_t len = strlen(text);
   if (len > 0) {
-    uint16_t pos = 0;
+    uint8_t pos = 0;
     while (pos < len) {
       // utf-8 D0 :: А..Я а..п
       if ((pos+1 < len) && (text[pos] == 0xD0) && (text[pos+1] >= 0x90) && (text[pos+1] <= 0xBF)) {
@@ -420,17 +424,17 @@ uint16_t reLCD::printstr(const char* text)
   return len;
 }
 
-uint16_t reLCD::printpos(uint8_t col, uint8_t row, const char* text)
+uint8_t reLCD::printpos(uint8_t col, uint8_t row, const char* text)
 {
   setCursor(col, row);
   return printstr(text);
 }
 
-uint16_t reLCD::printf(const char* fmtstr, ...)
+uint8_t reLCD::printf(const char* fmtstr, ...)
 {
   va_list args;
   va_start(args, fmtstr);
-  uint16_t len = vsnprintf(nullptr, 0, fmtstr, args);
+  uint8_t len = vsnprintf(nullptr, 0, fmtstr, args);
   char* text = (char*)esp_calloc(1, len+1);
   if (text) {
     vsnprintf(text, len+1, fmtstr, args);
@@ -438,6 +442,37 @@ uint16_t reLCD::printf(const char* fmtstr, ...)
   va_end(args);
   if (text) {
     len = printstr((const char*)text);
+    free(text);
+    return len;
+  };
+  return 0;
+}
+
+uint8_t reLCD::printn(uint8_t col, uint8_t row, uint8_t width, const char* fmtstr, ...)
+{
+  va_list args;
+  va_start(args, fmtstr);
+  uint8_t len = vsnprintf(nullptr, 0, fmtstr, args);
+  char* text = (char*)esp_calloc(1, len+1);
+  if (text) {
+    vsnprintf(text, len+1, fmtstr, args);
+  };
+  va_end(args);
+  if (text) {
+    setCursor(col, row);
+    int8_t shift = width - len;
+    // If the result of formatting is shorter than the specified width, add spaces in front
+    if (shift > 0) {
+      for (size_t i = 0; i < shift; i++) {
+        writeChar(' ');
+      };
+    };
+    // If the result of formatting is longer than the specified width, truncate the beginning of the string
+    if (shift < 0) {
+      len = printstr((const char*)text - shift) + shift;
+    } else {
+      len = printstr((const char*)text) + shift;
+    };
     free(text);
     return len;
   };
