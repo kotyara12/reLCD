@@ -313,41 +313,42 @@ void reLCD::resetRusCustomChars()
 
 uint8_t reLCD::writeRus(uint8_t chr)
 {
+  // Scan in buffer
   for (uint8_t i = 0; i < MAX_CUSTOM_CHARS; i++) {
-    // Scan in buffer
     if (_buf_chars[i] == chr) {
       return writeChar(i);
     };
+  };
 
-    // Find symbol in images
-    for (uint8_t i = 0; i < count_images; i++) {
-      if (rus_chars[i].charcode == chr) {
-        uint8_t col = _col;
-        uint8_t row = _row;
-        // Searching for a blank character
-        uint8_t index = 255;
-        for (uint8_t j = 0; j < MAX_CUSTOM_CHARS; j++) {
-          if (_buf_chars[j] == 0) {
-            index = j;
-            break;
-          };
+  // Find symbol in images
+  for (uint8_t i = 0; i < count_images; i++) {
+    if (rus_chars[i].charcode == chr) {
+      uint8_t col = _col;
+      uint8_t row = _row;
+      // Searching for a blank character
+      uint8_t index = 255;
+      for (uint8_t j = 0; j < MAX_CUSTOM_CHARS; j++) {
+        if (_buf_chars[j] == 0) {
+          index = j;
+          break;
         };
-        // All buffers are busy - reset all
-        if (index == 255) {
-          index = 0;
-          resetRusCustomChars();
-        };
-        // Create new custom char
-        _buf_chars[index] = chr;
-        createChar(index, (uint8_t*)(rus_chars[i].rastr));
-        // Print custom char
-        setCursor(col, row);
-        return writeChar(index);
       };
+      // All buffers are busy - reset all
+      if (index == 255) {
+        index = 0;
+        resetRusCustomChars();
+      };
+      // Create new custom char
+      _buf_chars[index] = chr;
+      createChar(index, (uint8_t*)(rus_chars[i].rastr));
+      // Print custom char
+      setCursor(col, row);
+      return writeChar(index);
     };
   };
+
   // Unknown char
-  return writeChar('?');
+  return writeChar(chr);
 }
 
 uint8_t reLCD::write(uint8_t chr)
