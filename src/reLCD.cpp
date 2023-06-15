@@ -500,7 +500,10 @@ void reLCD::write4bits(uint8_t value)
 void reLCD::expanderWrite(uint8_t data)
 {       
   uint8_t buf = (int)(data) | _backlightval;
-  writeI2C(_I2C_num, _I2C_addr, &buf, 1, nullptr, 0, 1000);                                 
+  esp_err_t err = writeI2C(_I2C_num, _I2C_addr, &buf, 1, nullptr, 0, 5000);                                 
+  if (err != ESP_OK) {
+    err = writeI2C(_I2C_num, _I2C_addr, &buf, 1, nullptr, 0, 5000);                                 
+  };
 }
 
 void reLCD::pulseEnable(uint8_t data)
