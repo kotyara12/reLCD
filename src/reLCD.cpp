@@ -90,7 +90,7 @@ const uint8_t count_images = sizeof(rus_chars) / sizeof(image_char_t);
 
 #endif // LCD_RUS_USE_CUSTOM_CHARS
 
-reLCD::reLCD(uint8_t i2c_bus, uint8_t i2c_addr, uint8_t cols, uint8_t rows)
+reLCD::reLCD(i2c_port_t i2c_bus, uint8_t i2c_addr, uint8_t cols, uint8_t rows)
 {
   _I2C_num = i2c_bus;
   _I2C_addr = i2c_addr;

@@ -18,6 +18,7 @@
 #include <time.h>
 #include <esp_err.h>
 #include "project_config.h"
+#include "driver/i2c.h"
 
 // EN: Flags for display entry mode
 // RU: Флаги режима ввода отображения
@@ -80,7 +81,7 @@ extern "C" {
 
 class reLCD {
   public:
-    reLCD(uint8_t i2c_bus, uint8_t i2c_addr, uint8_t cols, uint8_t rows);
+    reLCD(i2c_port_t i2c_bus, uint8_t i2c_addr, uint8_t cols, uint8_t rows);
     void begin(uint8_t cols, uint8_t rows, uint8_t charsize = LCD_5x8DOTS);
     void init();
     // EN: Clear display
@@ -126,17 +127,17 @@ class reLCD {
     void draw_vertical_graph(uint8_t row, uint8_t column, uint8_t len,  uint16_t percentage);
     void draw_vertical_graph(uint8_t row, uint8_t column, uint8_t len,  float ratio);
   private:
-    uint8_t  _I2C_num;
-    uint8_t  _I2C_addr;
-    uint8_t  _displayfunction;
-    uint8_t  _displaycontrol;
-    uint8_t  _displaymode;
-    uint8_t  _numlines;
-    uint8_t  _cols;
-    uint8_t  _rows;
-    uint8_t  _backlightval;
-    uint8_t  _graphtype;
-    uint8_t  _graphstate[20];
+    i2c_port_t  _I2C_num;
+    uint8_t     _I2C_addr;
+    uint8_t     _displayfunction;
+    uint8_t     _displaycontrol;
+    uint8_t     _displaymode;
+    uint8_t     _numlines;
+    uint8_t     _cols;
+    uint8_t     _rows;
+    uint8_t     _backlightval;
+    uint8_t     _graphtype;
+    uint8_t     _graphstate[20];
     void send(uint8_t value, uint8_t mode);
     void command(uint8_t value);
     void expanderWrite(uint8_t data);
